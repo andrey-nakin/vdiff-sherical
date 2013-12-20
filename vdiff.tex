@@ -1,0 +1,375 @@
+\documentclass[12pt, a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage[]{graphicx}
+\usepackage[]{amsmath}
+\graphicspath{{pic/}}
+
+\begin{document}
+
+\title{Задача об отжиге петель. Версия 4.2}
+\maketitle
+
+\section{Основные формулы}
+
+\subsection{Уравнения основных физических законов}
+
+Исследуем поведение концентрации вакансий $C$ под воздействием изменения температуры в образце, влияния дислокаций и других факторов.
+
+Величина $C$ имеет размерность м${}^{-3}$ и выражается через число вакансий как:
+
+\begin{equation}
+\label{c_by_n}
+C = \frac{n}{V},
+\end{equation}
+
+\noindent где $n$~--- число вакансий в некотором образце, $V$~--- объём образца (м${}^3$).
+
+Равновесная концентрация вакансий $C^e(T, P)$ равна:
+
+\begin{equation}
+\label{eq_eq_c}
+C^e = C^0 \exp \left(-\frac{U_f + Pv}{kT} \right),
+\end{equation}
+
+\noindent где $C^0$~--- постоянный коэффициент (м${}^{-3}$), $U_f$~--- энергия формирования вакансий (Дж), $P$~--- давление (Па), $k$~--- постоянная Больцмана (Дж/К), $T$~--- температура (К).
+
+Коэффициент диффузии вакансий:
+
+\begin{equation}
+\label{eq_diffusion}
+D = D_0 \exp \left( \frac{-U_m}{kT} \right),
+\end{equation}
+
+\noindent где $D$~--- коэффициент диффузии (м${}^2$/с), $D_0$~--- размерный коэффициент (м${}^2$/с), $U_m$~--- энергия миграции вакансий (Дж), $T$~--- температура (К).
+
+Химический потенциал вакансий:
+
+\begin{equation}
+\label{eq_mu}
+\mu = kT \ln{\frac{C}{C^e}},
+\end{equation}
+
+\noindent где $\mu$~--- химический потенциал (Дж).
+
+Поток вакансий определяется по уточнённому закону Фика:
+
+\begin{equation}
+\label{eq_fik}
+{\bf j}=-\frac{DC}{kT}\nabla \mu,
+\end{equation}
+
+\noindent где ${\bf j}$~--- поток вакансий (м${}^{-2}$с${}^{-1}$).
+
+\subsection{Замена переменных}
+
+Численное решение уравнений относительно величины $C$ достаточно сложно и порой невозможно:
+
+\begin{itemize}
+\item В реальных экспериментах температура образцов меняется на сотни кельвин. При этом равновесная концентрация $C^e$, а вслед за ней и фактическая концентрация $C$ меняется на много порядков.
+\item Величина $C$ может принимать строго положительные значения, она даже не может быть равна нулю, в противном случае перестаёт работать формула (\ref{eq_mu}).
+\end{itemize}
+
+Всё это осложняет работу обычных численных методов. Поэтому на практике удобно ввести следующую безразмерную величину и решать задачу относительно неё:
+
+\begin{equation}
+\label{eq_gamma}
+\gamma = \ln{\frac{C}{C^e}}.
+\end{equation}
+
+Обратное преобразование:
+
+\begin{equation}
+\label{eq_c_from_gamma}
+C = C^e \exp(\gamma).
+\end{equation}
+
+Производная концентрации по времени:
+
+\begin{equation}
+\label{eq_dc_dt_gamma}
+\frac{\partial C}{\partial t} = \frac{\partial C^e}{\partial t} \exp(\gamma) + C^e \exp(\gamma) \frac{\partial \gamma}{\partial t}.
+\end{equation}
+
+Производная равновесной концентрации по времени:
+
+\begin{equation}
+\label{eq_dce_dt_gamma}
+\frac{\partial C^e}{\partial t} = C^e \left( \frac{U_f + Pv}{kT^2} \cdot \frac{\partial T}{\partial t} - \frac{v}{kT} \cdot \frac{\partial P}{\partial t} \right).
+\end{equation}
+
+Перепишем используемые уравнения. Химический потенциал:
+
+\begin{equation}
+\label{eq_mu_gamma}
+\mu = kT \gamma.
+\end{equation}
+
+Поток вакансий:
+
+\begin{equation}
+\label{eq_fik}
+{\bf j}=-\frac{DC^e \exp(\gamma)}{kT}\nabla \mu.
+\end{equation}
+
+\subsection{Уравнения поглощения вакансий дислокацией}
+
+Рассмотрим круговую межузельную дислокацию --- петлю. Количество мест для вакансий на контуре петли
+
+\begin{equation}
+\label{eq_vacs_on_dislo}
+n_L = \frac{2 \pi R b^2}{v},
+\end{equation}
+
+\noindent где $n_L$~--- чсло мест для вакансий, $R$~--- радиус петли (м), $b$~--- толщина петли, равная толщине одного атомного слоя (м).
+
+Пусть скорость поглощения вакансий петлёй $dn/dt$ будет пропорциональна $n_L$, тогда:
+
+\begin{equation}
+\label{eq_dn_dt}
+\frac{\partial n}{\partial t} = -n_L \nu p \mu = -\frac{2 \pi R b^2}{v} \nu p \mu H(\mu),
+\end{equation}
+
+\noindent где $\nu$~--- частота Дебая, $p$~--- вероятность <<перескока>> вакансии в дислокацию, $H$~--- функция Хевисайда:
+
+\begin{equation}
+H(x) = 0 | x < 0, H(x) = 1 | x \ge 0.
+\end{equation}
+
+Функция Хевисайда вводится искусственным образом для того, чтобы петля не начала испускать вакансии при отрицательном хим. потенциале.
+
+\subsection{Вспомогательные формулы}
+
+Средний пробег вакансий за время $t$ для одномерной диффузии:
+
+\begin{equation}
+\label{eq_avg_dist}
+x_{avg} = \sqrt{2Dt},
+\end{equation}
+
+\noindent где $x_{avg}$~--- средний пробег (м).
+
+Максимальный с точностью 99,9\% пробег вакансий за время $t$ для одномерной диффузии:
+
+\begin{equation}
+\label{eq_max_dist}
+x_{max} = 4\sqrt{Dt},
+\end{equation}
+
+\noindent где $x_{max}$~--- максимальный пробег (м).
+
+Формулы (\ref{eq_avg_dist}), (\ref{eq_max_dist}) могут использоваться для выбора размера модели и времени релаксации.
+
+Температура в образце при нагреве или охлаждении меняется по следующему закону:
+
+\begin{equation}
+T = T_1 + (T_0 - T_1) \cdot \exp(-\frac{t}{t_c}),
+\end{equation}
+
+\noindent где $T_0$~--- начальная температура, $T_1$~--- конечная температура, $t_c$~--- характерное время охлаждения (нагрева).
+
+Давление круговой дислокации вдоль оси~Z, перпендикулярной плоскости дислокации и проходящей через её центр:
+
+\begin{equation}
+Sp \sigma = \frac{Gb}{2R} \cdot \frac{1 + \nu}{1 - \nu} \cdot \frac{1}{{\left( 1 + \left( \frac{z}{R} \right)^2 \right)}^{\frac{3}{2}}},
+\end{equation}
+
+\noindent где $Sp \sigma$~--- давление (Па), $R$~--- радиус дислокации (м), $z$~--- расстояние до дислокации вдоль оси Z (м), $G$~--- модуль сдвига (Па), $b$~--- модуль вектора Бюргерса (м), $\nu$~--- коэффициент Пуассона.
+
+\section{Постановка задачи}
+
+\subsection{Математическая модель}
+
+Рассматриваем систему в виде сферы, в центре которой расположена межузельная дислокация. Будем использовать сферическую систему координат, где $r$~--- расстояние от центра.
+
+Возьмём сферический слой с радиусами $r-\frac{\Delta r}{2}$ и $r + \frac{\Delta r}{2}$, где $\Delta r \to 0$. Центральный слой представляет собой просто сферу радиуса $\Delta r$. Всего в системе содержится $N$ слоёв, $N > 1$.
+
+{\bf Примем следующие допущения}:
+
+\begin{itemize}
+\item Дислокация целиком располагается в центральном слое.
+\item Концентрация вакансий $C$, её производная по времени $\frac{\partial C}{\partial t}$, температура $T$ и давление $P$ одинаковы во всех точках слоя.
+\item Величины $v$, $U_f$, $U_m$, $D_0$, $C^0$ одинаковы и неизменны для всей системы.
+\item Давление в системе не меняется во времени:
+
+\begin{equation}
+\label{eq_dp_dt}
+\frac{\partial P}{\partial t} \equiv 0.
+\end{equation}
+
+\end{itemize}
+ 
+ Тогда изменение концентрации вакансий в слое:
+
+\begin{equation}
+\label{eq_dc_dt}
+\frac{\partial C}{\partial t} V_s = S\left(r-\frac{\Delta r}{2}\right) j\left(r-\frac{\Delta r}{2}\right)-S\left(r+\frac{\Delta r}{2}\right) j\left(r+\frac{\Delta r}{2}\right) + \frac{\partial n}{\partial t},
+\end{equation}
+
+\noindent где $V_s$~--- объём слоя, $S(r)$~--- площадь сферической поверхности в точке с радиусом $r$, $j(r)$~--- поток вакансий в точке с радиусом $r$ (положительное направление совпадает с осью $OR$), $\frac{\partial n}{\partial t}$~--- вклад от источников (поглотителей) вакансий внутри слоя.
+
+Объём слоя равен:
+
+\begin{equation}
+\label{eq_v_s}
+\begin{aligned}
+V_s=\frac{4}{3}\pi\left( \left( r + \frac{\Delta r}{2} \right) ^3 - \left( r - \frac{\Delta r}{2} \right)^3 \right) = \\
+= \frac{4\pi}{3} \cdot \frac{12 r^2 \Delta r + \Delta r ^3}{4}. \\
+\end{aligned}
+\end{equation}
+
+Площадь границы между слоями в точке $r$ равна:
+
+\begin{equation}
+\label{eq_s_r}
+S(r) = 4 \pi r^2.
+\end{equation}
+
+Подставим (\ref{eq_v_s}) и (\ref{eq_s_r}) в (\ref{eq_dc_dt}) и сократим на $4\pi$:
+
+\begin{equation}
+\label{eq_dc_dt2}
+\begin{aligned}
+\frac{\partial C}{\partial t}\cdot \frac{12 r^2 \Delta r + \Delta r^3}{12} = \\
+= \left(r - \frac{\Delta r}{2} \right)^2 j \left(r - \frac{\Delta r}{2} \right) - \left(r + \frac{\Delta r}{2} \right) ^2 j \left(r + \frac{\Delta r}{2} \right) + \frac{1}{4\pi} \frac{\partial n}{\partial t}.
+\end{aligned}
+\end{equation}
+
+Перейдём к дискретным величинам. Рассмотрим слой с номером $i$ ($i \ge 1$), радиус слоя $r = \Delta r \left( i - \frac{1}{2} \right)$. Уравнение концентрации для данного слоя:
+
+\begin{equation}
+\label{eq_dc_dt3}
+\begin{aligned}
+\frac{d C_i}{d t}\cdot \frac{\Delta r^3 \left( 3i^2 - 3i + 1 \right)}{3} = \Delta r^2 \left(i - 1 \right)^2 j_i^{in} - \Delta r^2 i^2 j_i^{out} + \frac{1}{4\pi} \frac{\partial n_i}{\partial t},
+\end{aligned}
+\end{equation}
+
+\noindent где $j_i^{in}$~--- поток из слоя $i-1$ в слой $i$, $j_i^{out}$~--- поток из слоя $i$ в слой $i+1$.
+
+Перепишем уравнение (\ref{eq_dc_dt3}), чтобы оно приобрело вид обыкновенного дифференциального уравнения (ОДУ), и сократим его:
+
+\begin{equation}
+\frac{d C_i}{d t} = \frac{ \left(i - 1 \right)^2 j_i^{in} - i^2 j_i^{out} + \frac{1}{4 \pi \Delta r^2} \frac{\partial n_i}{\partial t} } { \Delta r \left( i^2 - i + \frac{1}{3} \right) }.
+\end{equation}
+
+Произведём замену переменных в соответствии с (\ref{eq_dc_dt_gamma}):
+
+\begin{equation}
+\frac{d \gamma_i}{d t} = \frac{1}{C^e_i \exp(\gamma_i)} \left[ \frac{ \left(i - 1 \right)^2 j_i^{in} - i^2 j_i^{out} + \frac{1}{4 \pi \Delta r^2} \frac{\partial n_i}{\partial t} } { \Delta r \left( i^2 - i + \frac{1}{3} \right) } - \frac{dC^e_i}{dt} \exp(\gamma_i) \right].
+\end{equation}
+
+Раскроем $\frac{dC^e_i}{dt}$ в соответствии с (\ref{eq_dce_dt_gamma}) и допущением (\ref{eq_dp_dt}):
+
+\begin{equation}
+\label{eq_ode}
+\boxed{
+\frac{d \gamma_i}{d t} =
+ \frac{ \left(i - 1 \right)^2 j_i^{in} - i^2 j_i^{out} + \frac{1}{4 \pi \Delta r^2} \frac{\partial n_i}{\partial t} } { \Delta r \left( i^2 - i + \frac{1}{3} \right) C^e_i \exp(\gamma_i) }
+ - \frac{U_f + P_iv}{kT^2_i} \cdot \frac{dT_i}{dt}.
+}
+\end{equation}
+
+В формуле (\ref{eq_ode}) величина $\frac{dT_i}{dt}$ является внешней по отношению к системе и потому не нарушает вида дифференциального уравнения.
+
+Уравнение потока вакансий (\ref{eq_fik}) в дискретном случае необходимо переписать следующим образом:
+
+\begin{equation}
+\label{eq_discrete_fik}
+{\bf j}=-\frac{\bar{D}\bar{C}^e \exp(\bar{\gamma})}{k\bar{T}}\nabla \mu.
+\end{equation}
+
+\noindent где $\bar{D}$, $\bar{T}$ и пр.~--- средние значения соответствующих величин на границе двух слоёв. Дело в том, что в дискретном случае у нас нет непрерывно изменяющихся величин, а есть просто два разных значения в соседних слоях. Для решения уравнения (\ref{eq_discrete_fik}) мы вводим следующие определения:
+
+Значение произвольной величины $X(i)$ на границе слоёв $i$ и $i+1$:
+
+\begin{equation}
+\label{eq_discrete_average}
+\begin{aligned}
+\bar{X} = \frac{X_{i+1} + X_i}{2}.
+\end{aligned}
+\end{equation}
+
+Дискретный градиент величины $X(i)$ на границе слоёв $i$ и $i+1$:
+
+\begin{equation}
+\label{eq_discrete_nabla}
+\begin{aligned}
+\nabla X = \frac{X_{i+1} - X_i}{\Delta r}.
+\end{aligned}
+\end{equation}
+
+Теперь, пользуясь (\ref{eq_discrete_average}) и (\ref{eq_discrete_nabla}), перепишем (\ref{eq_discrete_fik}) для выражения потока вакансий из слоя $i$ в слой $i+1$:
+
+\begin{equation}
+\label{eq_j_out}
+\boxed{
+j_i^{out}=\frac{D_{i+1} + D_i}{2k} \cdot \frac{C^e_{i+1} + C^e_i}{T_{i+1} + T_i} \cdot \frac{\mu_i - \mu_{i+1} }{\Delta r} \exp(\frac{\gamma_{i + 1} + \gamma_i}{2}).
+}
+\end{equation}
+
+Аналогично определяется поток вакансий из слоя $i-1$ в слой $i$:
+
+\begin{equation}
+\boxed{
+j_i^{in}=\frac{D_i + D_{i-1}}{2k} \cdot \frac{C^e_i + C^e_{i-1}}{T_i + T_{i-1}} \cdot \frac{\mu_{i-1} - \mu_i}{\Delta r} \exp(\frac{\gamma_i + \gamma_{i-1}}{2}).
+}
+\end{equation}
+
+Закон сохранения вакансий:
+
+\begin{equation}
+j_i^{in}=j_{i-1}^{out}, j_i^{out}=j_{i+1}^{in}.
+\end{equation}
+
+\subsection{Граничные условия}
+
+\subsubsection{Внутренний слой}
+
+Очевидным образом в центральном слое отсутствует поток вакансий из низлежащих слоёв:
+
+\begin{equation}
+j_1^{in} \equiv 0.
+\end{equation}
+
+Очевидно также, что $\frac{\partial n_i}{\partial t} \equiv 0$ при $i > 1$, потому что во всех слоях кроме первого нет собственных источников и поглотителей вакансий.
+
+\subsubsection{Наружный слой}
+
+В реальных образцах всегда существуют дефекты решётки, границы зёрен и пр. источники и поглотители вакансий. При увеличении температуры они служат источниками вакансий, которые потом <<растекаются>> по образцу. При уменьшении температуры они служат местами стока избыточных вакансий.
+
+Таким образом, и наша система сферических слоёв не изолирована от остального объёма образца, а сообщается с ним через наружный слой. Необходимо смоделировать как процесс поступления недостающих вакансий в систему, так и процесс удаления избыточных вакансий.
+
+Примем допущение, что химический потенциал $\mu_{N+1}$ в непосредственной близости к наружному слою всегда немного ближе к равновесному, то есть к нулю:
+
+\begin{equation}
+\label{eq_external_mu}
+\mu_{N+1} = \mu_N \cdot (1 - \alpha),
+\end{equation}
+
+\noindent где $\alpha$~--- параметр, при помощи которого регулируется мощность внешних источников и поглотителей вакансий, $0 < \alpha < 1$.
+
+Подставляем (\ref{eq_external_mu}) в (\ref{eq_j_out}) и считаем, что температура, давление и концентрация вакансий сразу за наружным слоем такие же, как в наружном слое:
+
+\begin{equation}
+j_N^{out}=\frac{D_N}{k} \cdot \frac{C^e_N}{T_N} \cdot \frac{\alpha \mu_N }{\Delta r} \exp(\gamma_N).\end{equation}
+
+\subsection{Начальные условия}
+
+Для численного решения системы ОДУ (\ref{eq_ode}) необходимо задать начальные условия. Зададим их следующим образом. В начальный момент времени концентрации вакансий равны равновесным концентрациям при начальной температуре то есть:
+
+\begin{equation}
+\label{eq_bc1}
+\gamma_i(0) = 0.
+\end{equation}
+
+\subsection{Анализ результатов}
+
+По окончании интегрирования системы ОДУ (\ref{eq_ode}) производится анализ результатов. Наибольший интерес представляет число поглощённых вакансий петлёй в центральном слое, которое вычисляется по формуле:
+
+\begin{equation}
+n^{ads} = -\int_{t = 0}^{t_{max}} \frac{\partial n}{\partial t} dt,
+\end{equation}
+
+\noindent где $n^{ads}$~--- число вакансий, поглощённых петлёй за исследуемое время, $t_{max}$~--- время интегрирования.
+
+\end{document}
